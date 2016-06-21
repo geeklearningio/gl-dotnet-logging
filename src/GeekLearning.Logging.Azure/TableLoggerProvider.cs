@@ -13,20 +13,57 @@
     public class TableLoggerProvider : ILoggerProvider
     {
         private string azureConnectionString;
-        private Microsoft.Extensions.Logging.LogLevel level;
         private string logTable;
+        private Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter;
+        private CloudTableClient client;
+        private CloudTable table;
+        private TransformBlock<DynamicTableEntity, DynamicTableEntity> pipeline;
+        private BatchBlock<DynamicTableEntity> batchBlock;
+        private ITargetBlock<DynamicTableEntity[]> pipelineEnd;
 
-        public TableLoggerProvider(string azureConnectionString, string logTable, Microsoft.Extensions.Logging.LogLevel level)
+        public TableLoggerProvider(string azureConnectionString, string logTable, Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter)
         {
             this.azureConnectionString = azureConnectionString;
             this.logTable = logTable;
-            this.level = level;
+            this.filter = filter;
+
+            var cloud = CloudStorageAccount.Parse(azureConnectionString);
+            this.client = cloud.CreateCloudTableClient();
+            this.table = client.GetTableReference(logTable);
+
+            this.batchBlock = new BatchBlock<DynamicTableEntity>(25);
+
+            Timer triggerBatchTimer = new Timer((_) => this.batchBlock.TriggerBatch(), null, Timeout.Infinite, Timeout.Infinite);
+
+            pipeline = new TransformBlock<DynamicTableEntity, DynamicTableEntity>((value) =>
+            {
+                triggerBatchTimer.Change(5000, Timeout.Infinite);
+
+                return value;
+            });
+
+            pipelineEnd = new ActionBlock<DynamicTableEntity[]>(WriteBatch);
+            pipeline.LinkTo(batchBlock);
+            batchBlock.LinkTo(pipelineEnd);
         }
         public ILogger CreateLogger(string name)
         {
-
-            return new AzureLogger(name, azureConnectionString, logTable, level);
+            return new AzureLogger(name, azureConnectionString, logTable, filter, true, pipeline);
         }
+
+        private async Task WriteBatch(DynamicTableEntity[] rows)
+        {
+            foreach (var group in rows.GroupBy(x => x.PartitionKey))
+            {
+                TableBatchOperation batchOperation = new TableBatchOperation();
+                foreach (var row in group)
+                {
+                    batchOperation.Insert(row, false);
+                }
+                await table.ExecuteBatchAsync(batchOperation);
+            }
+        }
+
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
@@ -42,7 +79,9 @@
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
-
+                this.batchBlock.TriggerBatch();
+                pipeline.Complete();
+                pipeline.Completion.Wait();
                 disposedValue = true;
             }
         }
@@ -66,87 +105,118 @@
 
     public class AzureLogger : ILogger
     {
-        private CloudTableClient client;
-        private Microsoft.Extensions.Logging.LogLevel level;
-        private int iLevel;
-        private string name;
-        private CloudTable table;
-        private TransformBlock<LogRow, LogRow> pipeline;
-        private BatchBlock<LogRow> batchBlock;
-        private ITargetBlock<LogRow[]> pipelineEnd;
 
-        public AzureLogger(string name, string azureConnectionString, string logTable, Microsoft.Extensions.Logging.LogLevel level)
+        private Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter;
+        private D64.TimebasedId timeBasedId = new D64.TimebasedId(true);
+        private ITargetBlock<DynamicTableEntity> sink;
+
+        public AzureLogger(string name, string azureConnectionString, string logTable, Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter, bool includeScopes, ITargetBlock<DynamicTableEntity> sink)
         {
-            this.name = name;
-            var cloud = CloudStorageAccount.Parse(azureConnectionString);
-            this.client = cloud.CreateCloudTableClient();
-            this.table = client.GetTableReference(logTable);
-            this.level = level;
-            this.iLevel = (int)level;
-
-            this.batchBlock = new BatchBlock<LogRow>(25);
-
-            Timer triggerBatchTimer = new Timer((_) => this.batchBlock.TriggerBatch(), null, Timeout.Infinite, Timeout.Infinite);
-
-            pipeline = new TransformBlock<LogRow, LogRow>((value) =>
+            this.sink = sink;
+            if (name == null)
             {
-                triggerBatchTimer.Change(5000, Timeout.Infinite);
+                throw new ArgumentNullException(nameof(name));
+            }
 
-                return value;
-            });
+            Name = name;
 
-            pipelineEnd = new ActionBlock<LogRow[]>(WriteBatch);
-            pipeline.LinkTo(batchBlock);
-            batchBlock.LinkTo(pipelineEnd);
+            Filter = filter ?? ((category, logLevel) => true);
+
+
         }
 
-        public async Task WriteBatch(LogRow[] rows)
+        private string Name { get; }
+
+        public bool IncludeScopes { get; set; }
+
+        public Func<string, Microsoft.Extensions.Logging.LogLevel, bool> Filter
         {
-            foreach (var group in rows.GroupBy(x => x.PartitionKey))
+            get { return filter; }
+            set
             {
-                TableBatchOperation batchOperation = new TableBatchOperation();
-                foreach (var row in group)
+                if (value == null)
                 {
-                    batchOperation.Insert(row, false);
+                    throw new ArgumentNullException(nameof(value));
                 }
-                await table.ExecuteBatchAsync(batchOperation);
+
+                filter = value;
             }
         }
 
+
+
         public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
         {
-            return (int)level >= this.iLevel;
+            return Filter(Name, logLevel);
         }
 
         public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            if ((int)logLevel >= this.iLevel)
+            if (!IsEnabled(logLevel))
             {
-                this.pipeline.Post(new LogRow()
+                return;
+            }
+
+            if (formatter == null)
+            {
+                throw new ArgumentNullException(nameof(formatter));
+            }
+
+            var message = formatter(state, exception);
+            string exceptionText = exception?.ToString();
+
+            var properties = new Dictionary<string, EntityProperty>
+            {
+                ["LogLevel"] = EntityProperty.GeneratePropertyForString(logLevel.ToString()),
+                ["Message"] = EntityProperty.GeneratePropertyForString(message),
+                ["ExceptionText"] = EntityProperty.GeneratePropertyForString(exceptionText),
+                ["EventId"] = EntityProperty.GeneratePropertyForInt(eventId.Id),
+                ["EventName"] = EntityProperty.GeneratePropertyForString(eventId.Name),
+                ["Date"] = EntityProperty.GeneratePropertyForDateTimeOffset(DateTimeOffset.Now),
+                ["LoggerName"] = EntityProperty.GeneratePropertyForString(this.Name),
+            };
+
+            string requestId = null;
+            var current = AzureScope.Current;
+            while (current != null)
+            {
+                foreach (var item in current.Values)
                 {
-                    PartitionKey = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH"),
-                    RowKey = Guid.NewGuid().ToString(),
-                    LogLevel = logLevel.ToString(),
-                    Message = formatter(state, exception),
-                    EventId = eventId.Id,
-                    EventName = eventId.Name,
-                    Date = DateTimeOffset.Now,
-                    LoggerName = this.name,
-                    RequestId = Services.CorrelationIdMiddlewareHelpers.CorrelationId,
-                });
+                    properties.Add($"Scope{current.StateName}{item.Key}", EntityProperty.CreateEntityPropertyFromObject(item.Value));
+                    if (item.Key == "RequestId")
+                    {
+                        requestId = (string)item.Value;
+                    }
+                }
+
+                current = current.Parent;
+            }
+
+            properties["RequestId"] = EntityProperty.GeneratePropertyForString(requestId);
+
+            var id = timeBasedId.NewId();
+            var partition = (requestId ?? id).Substring(0, 5);
+
+
+
+            if (message != null || exceptionText != null)
+            {
+                var entity = new DynamicTableEntity(
+                    partition,
+                    id, null, properties);
+
+                this.sink.Post(entity);
             }
         }
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            return new CustomLoggerScope();
-        }
-    }
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
 
-    public class CustomLoggerScope : IDisposable
-    {
-        public void Dispose()
-        {
+            return AzureScope.Push(Name, state);
         }
     }
 
@@ -154,6 +224,7 @@
     {
         public string LogLevel { get; set; }
         public string Message { get; set; }
+        public string ExceptionText { get; set; }
         public int EventId { get; set; }
         public string EventName { get; set; }
         public DateTimeOffset Date { get; set; }

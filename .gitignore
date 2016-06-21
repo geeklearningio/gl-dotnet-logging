@@ -243,3 +243,4 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/samples/GeekLearning.Logging.Sample/appsettings.development.json
