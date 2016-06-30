@@ -10,6 +10,13 @@
   "frameworks": {
     "netstandard1.5": {
       "imports": "dnxcore50"
+    },
+    "net451": {
+      "frameworkAssemblies": {
+       
+      },
+      "dependencies": {
+      }
     }
   }
 }
