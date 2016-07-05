@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 #if NET452
     using System.Runtime.Remoting;
     using System.Runtime.Remoting.Messaging;
@@ -103,7 +104,7 @@
         {
             get
             {
-                return this.state as IReadOnlyList<KeyValuePair<string, object>>;
+                return this.state as IReadOnlyList<KeyValuePair<string, object>>?? Enumerable.Empty<KeyValuePair<string, object>>();
             }
         }
 

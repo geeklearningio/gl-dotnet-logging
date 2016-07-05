@@ -21,6 +21,7 @@ namespace GeekLearning.Logging.Sample.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
+            logger.LogError("hello");
             logger.LogWarning("hello");
             return new string[] { "value1", "value2" };
         }
