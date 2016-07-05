@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-
-namespace GeekLearning.Logging
+﻿namespace GeekLearning.Logging
 {
+    using Microsoft.AspNetCore.Http;
+    using System.Threading.Tasks;
+
     public class IdentifierMiddleware
     {
         private IIdentifierProvider identifierProvider;

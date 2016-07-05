@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-
-namespace GeekLearning.Logging
+﻿namespace GeekLearning.Logging
 {
+    using Microsoft.AspNetCore.Http.Features;
+
     public class DefaultIdentifierProvider : IIdentifierProvider
     {
-       
         public IHttpRequestIdentifierFeature GetHttpRequestIdentifierFeature()
         {
             return new TimeBasedHttpRequestIdentifierFeature();
@@ -18,7 +12,6 @@ namespace GeekLearning.Logging
         private class TimeBasedHttpRequestIdentifierFeature : IHttpRequestIdentifierFeature
         {
             private D64.TimebasedId timeBasedId = new D64.TimebasedId(true);
-
             private string id = null;
 
             public string TraceIdentifier
@@ -30,8 +23,10 @@ namespace GeekLearning.Logging
                     {
                         id = timeBasedId.NewId();
                     }
+
                     return id;
                 }
+
                 set
                 {
                     id = value;

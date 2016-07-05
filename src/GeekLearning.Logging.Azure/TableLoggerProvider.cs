@@ -1,14 +1,14 @@
 ﻿namespace GeekLearning.Logging.Azure
 {
-    using System;
-    using System.Linq;
-    using System.Threading;
+    using Microsoft.Extensions.Logging;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
-    using Microsoft.Extensions.Logging;
 
     public class TableLoggerProvider : ILoggerProvider
     {
@@ -46,6 +46,7 @@
             pipeline.LinkTo(batchBlock);
             batchBlock.LinkTo(pipelineEnd);
         }
+
         public ILogger CreateLogger(string name)
         {
             return new AzureLogger(name, azureConnectionString, logTable, filter, true, pipeline);
@@ -60,13 +61,14 @@
                 {
                     batchOperation.Insert(row, false);
                 }
+
                 await table.ExecuteBatchAsync(batchOperation);
             }
         }
 
-
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        // To detect redundant calls
+        private bool disposedValue = false;
 
         protected virtual void Dispose(bool disposing)
         {
@@ -105,7 +107,6 @@
 
     public class AzureLogger : ILogger
     {
-
         private Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter;
         private D64.TimebasedId timeBasedId = new D64.TimebasedId(true);
         private ITargetBlock<DynamicTableEntity> sink;
@@ -119,10 +120,7 @@
             }
 
             Name = name;
-
             Filter = filter ?? ((category, logLevel) => true);
-
-
         }
 
         private string Name { get; }
@@ -142,8 +140,6 @@
                 filter = value;
             }
         }
-
-
 
         public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
         {
@@ -197,8 +193,6 @@
             var id = timeBasedId.NewId();
             var partition = (requestId ?? id).Substring(0, 5);
 
-
-
             if (message != null || exceptionText != null)
             {
                 var entity = new DynamicTableEntity(
@@ -223,12 +217,19 @@
     public class LogRow : TableEntity
     {
         public string LogLevel { get; set; }
+
         public string Message { get; set; }
+
         public string ExceptionText { get; set; }
+
         public int EventId { get; set; }
+
         public string EventName { get; set; }
+
         public DateTimeOffset Date { get; set; }
+
         public string LoggerName { get; set; }
+
         public string RequestId { get; set; }
     }
 }
