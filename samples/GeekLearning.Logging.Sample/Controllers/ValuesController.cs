@@ -30,7 +30,6 @@ namespace GeekLearning.Logging.Sample.Controllers
         public string Get(int id)
         {
             throw new Exception("une erreur");
-            return "value";
         }
 
         // POST api/values
