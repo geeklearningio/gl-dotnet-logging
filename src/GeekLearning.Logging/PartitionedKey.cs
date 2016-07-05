@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Logging
+﻿namespace GeekLearning.Logging
 {
     public class PartitionedKey
     {
@@ -27,6 +22,7 @@ namespace GeekLearning.Logging
                 {
                     full = $"{Partition}{Key}";
                 }
+
                 return full;
             }
         }
