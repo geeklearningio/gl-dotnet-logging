@@ -13,7 +13,8 @@
     "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
     "WindowsAzure.Storage": "7.1.3-preview",
     "GeekLearning.D64": "1.0.0",
-    "GeekLearning.Logging": "*"
+    "GeekLearning.Logging": "*",
+    "Microsoft.Extensions.Configuration.Abstractions": "1.0.0"
   },
 
   "frameworks": {
