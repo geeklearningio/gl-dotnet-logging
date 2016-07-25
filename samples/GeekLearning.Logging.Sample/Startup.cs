@@ -43,6 +43,7 @@ namespace GeekLearning.Logging.Sample
             loggerFactory.AddDebug();
 
             app.UseMiddleware<Logging.IdentifierMiddleware>();
+            app.UseMiddleware<Logging.AppendRequestIdHeaderMiddleware>();
 
             app.UseMvc();
         }
