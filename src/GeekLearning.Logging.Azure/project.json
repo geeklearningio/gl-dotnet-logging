@@ -11,7 +11,7 @@
   "dependencies": {
     "NETStandard.Library": "1.6.0",
     "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
-    "WindowsAzure.Storage": "7.1.3-preview",
+    "WindowsAzure.Storage": "7.2.0",
     "GeekLearning.D64": "1.0.0",
     "GeekLearning.Logging": "*"
   },
