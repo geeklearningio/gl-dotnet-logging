@@ -37,11 +37,13 @@ namespace GeekLearning.Logging.Sample
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddAzureTable(Configuration["AzureStorageConnectionString"], "logtest", LogLevel.Debug);
+            //loggerFactory.AddAzureTable(Configuration["AzureStorageConnectionString"], "logtest", LogLevel.Debug);
+            loggerFactory.AddAzureTable(Configuration.GetSection("AzureTableLogging"));
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
             app.UseMiddleware<Logging.IdentifierMiddleware>();
+            app.UseMiddleware<Logging.AppendRequestIdHeaderMiddleware>();
 
             app.UseMvc();
         }
