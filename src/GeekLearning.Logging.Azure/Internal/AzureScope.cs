@@ -1,4 +1,4 @@
-﻿namespace GeekLearning.Logging.Azure
+﻿namespace GeekLearning.Logging.Azure.Internal
 {
     using System;
     using System.Collections.Generic;
