@@ -2,30 +2,18 @@
 {
     public class PartitionedKey
     {
-        private string full;
-
         public PartitionedKey(string partition, string key)
         {
             this.Partition = partition;
             this.Key = key;
+            this.Full = $"{this.Partition}{this.Key}";
         }
 
         public string Partition { get; }
 
         public string Key { get; }
 
-        public string Full
-        {
-            get
-            {
-                if (full == null)
-                {
-                    full = $"{Partition}{Key}";
-                }
-
-                return full;
-            }
-        }
+        public string Full { get; }
 
         public override string ToString()
         {

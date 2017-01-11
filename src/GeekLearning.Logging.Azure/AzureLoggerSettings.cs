@@ -1,12 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-
-namespace GeekLearning.Logging.Azure
+﻿namespace GeekLearning.Logging.Azure
 {
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
+    using System;
+    using System.Collections.Generic;
+
     public class AzureLoggerSettings
     {
         public AzureLoggerSettings()

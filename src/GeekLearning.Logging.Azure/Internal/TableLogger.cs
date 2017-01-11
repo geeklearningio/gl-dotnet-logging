@@ -8,11 +8,11 @@
 
     public class TableLogger : ILogger
     {
-        private Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter;
+        private Func<string, LogLevel, bool> filter;
         private D64.TimebasedId timeBasedId = new D64.TimebasedId(true);
         private ITargetBlock<DynamicTableEntity> sink;
 
-        public TableLogger(string name, Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter, bool includeScopes, ITargetBlock<DynamicTableEntity> sink)
+        public TableLogger(string name, Func<string, LogLevel, bool> filter, bool includeScopes, ITargetBlock<DynamicTableEntity> sink)
         {
             this.sink = sink;
             if (name == null)
@@ -20,15 +20,15 @@
                 throw new ArgumentNullException(nameof(name));
             }
 
-            Name = name;
-            Filter = filter ?? ((category, logLevel) => true);
+            this.Name = name;
+            this.Filter = filter ?? ((category, logLevel) => true);
         }
 
         private string Name { get; }
 
         public bool IncludeScopes { get; set; }
 
-        public Func<string, Microsoft.Extensions.Logging.LogLevel, bool> Filter
+        public Func<string, LogLevel, bool> Filter
         {
             get { return filter; }
             set
@@ -42,12 +42,12 @@
             }
         }
 
-        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
+        public bool IsEnabled(LogLevel logLevel)
         {
             return Filter(Name, logLevel);
         }
 
-        public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             if (!IsEnabled(logLevel))
             {
@@ -114,5 +114,4 @@
             return AzureScope.Push(Name, state);
         }
     }
-
 }
