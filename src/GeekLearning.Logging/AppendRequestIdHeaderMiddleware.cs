@@ -5,7 +5,7 @@
 
     public class AppendRequestIdHeaderMiddleware
     {
-        private const string RequestIdHeaderName = "X-Request-Id";
+        public const string RequestIdHeaderName = "X-Request-Id";
         private readonly RequestDelegate next;
 
         public AppendRequestIdHeaderMiddleware(RequestDelegate next)
