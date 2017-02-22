@@ -4,6 +4,7 @@
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     [Route("api/[controller]")]
     public class ValuesController : Controller
@@ -20,6 +21,7 @@
         {
             logger.LogError("hello");
             logger.LogWarning("hello");
+            logger.LogWarning(string.Concat(Enumerable.Range(0, 2000).Select(i => $"{i} : very long message\r\n")));
             return new string[] { "value1", "value2" };
         }
 
