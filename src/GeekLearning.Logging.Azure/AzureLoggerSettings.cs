@@ -14,6 +14,15 @@
 
         public AzureLoggerSettings(IConfigurationSection section)
         {
+            var thresholdAsString = section["OverflowThreshold"];
+            int thresholdAsInt;
+            if (!string.IsNullOrEmpty(thresholdAsString) 
+                && int.TryParse(thresholdAsString, out thresholdAsInt))
+            {
+                this.OverflowThreshold = thresholdAsInt;
+            }
+
+            this.OverflowContainer = section["OverflowContainer"];
             this.ConnectionString = section["ConnectionString"];
             this.Table = section["Table"];
             foreach (var switchConfig in section.GetSection("LogLevel").GetChildren())
@@ -25,6 +34,10 @@
         public string ConnectionString { get; set; }
 
         public string Table { get; set; }
+
+        public string OverflowContainer { get; set; }
+
+        public int? OverflowThreshold { get; set; }
 
         public IDictionary<string, LogLevel> Switches { get; set; } = new Dictionary<string, LogLevel>();
 

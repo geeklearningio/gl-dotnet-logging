@@ -3,6 +3,7 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
+    using Microsoft.WindowsAzure.Storage.Blob;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,11 +14,16 @@
     public class TableLoggerProvider : ILoggerProvider
     {
         private Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter;
+        private CloudBlobClient blobClient;
+        private CloudBlobContainer container;
         private CloudTableClient client;
         private CloudTable table;
         private TransformBlock<DynamicTableEntity, DynamicTableEntity> pipeline;
         private BatchBlock<DynamicTableEntity> batchBlock;
         private ITargetBlock<DynamicTableEntity[]> pipelineEnd;
+
+        private ITargetBlock<KeyValuePair<string,string>> overflowBlock;
+
         private AzureLoggerSettings settings;
         private bool disposedValue = false;
 
@@ -34,6 +40,13 @@
             this.client = cloud.CreateCloudTableClient();
             this.table = client.GetTableReference(settings.Table);
 
+            this.blobClient = cloud.CreateCloudBlobClient();
+
+            if (!string.IsNullOrEmpty(settings.OverflowContainer))
+            {
+                this.container = this.blobClient.GetContainerReference(settings.OverflowContainer);
+            }
+
             this.batchBlock = new BatchBlock<DynamicTableEntity>(25);
 
             Timer triggerBatchTimer = new Timer((_) => this.batchBlock.TriggerBatch(), null, Timeout.Infinite, Timeout.Infinite);
@@ -48,11 +61,14 @@
             pipelineEnd = new ActionBlock<DynamicTableEntity[]>(WriteBatch);
             pipeline.LinkTo(batchBlock);
             batchBlock.LinkTo(pipelineEnd);
+
+            this.overflowBlock = new ActionBlock<KeyValuePair<string, string>>(WriteOverflow);
         }
+
 
         public ILogger CreateLogger(string name)
         {
-            return new TableLogger(name, GetFilter(name, settings), true, pipeline);
+            return new TableLogger(name, GetFilter(name, settings), true, this.settings.OverflowThreshold.GetValueOrDefault(8000), pipeline, overflowBlock);
         }
 
         private async Task WriteBatch(DynamicTableEntity[] rows)
@@ -66,6 +82,15 @@
                 }
 
                 await table.ExecuteBatchAsync(batchOperation);
+            }
+        }
+
+        private async Task WriteOverflow(KeyValuePair<string, string> overflowData)
+        {
+            if (this.container != null)
+            {
+                var reference = this.container.GetBlockBlobReference(overflowData.Key);
+                await reference.UploadTextAsync(overflowData.Value);
             }
         }
 
