@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Azure Storage Logging Provider.</Description>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <Authors>Geek Learning;Cyprien Autexier;Adrien Siffermann</Authors>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <AssemblyName>GeekLearning.Logging.Azure</AssemblyName>
+    <PackageId>GeekLearning.Logging.Azure</PackageId>
+    <PackageTags>azure;logger;dotnet;core</PackageTags>
+    <PackageProjectUrl>https://github.com/geeklearningio/gl-dotnet-logging</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/geeklearningio/gl-dotnet-logging/blob/master/LICENSE.md</PackageLicenseUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="2.0.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GeekLearning.Logging\GeekLearning.Logging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Threading.Tasks.Dataflow">
+      <HintPath>..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0\System.Threading.Tasks.Dataflow.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

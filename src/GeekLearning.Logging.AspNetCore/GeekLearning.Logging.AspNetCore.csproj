@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>GeekLearning.Logging.AspNetCore</AssemblyName>
+    <PackageId>GeekLearning.Logging.AspNetCore</PackageId>
+    <Description>Logging Asp.Net core helpers</Description>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <Authors>Geek Learning;Cyprien Autexier;Adrien Siffermann</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+</Project>
