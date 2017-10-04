@@ -1,6 +1,6 @@
 ﻿namespace GeekLearning.Logging.Sample
 {
-    using Azure;
+    using GeekLearning.Logging.Azure;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
