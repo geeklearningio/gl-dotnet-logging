@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="2.0.0" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.8.0" />
     <PackageReference Include="WindowsAzure.Storage" Version="8.4.0" />
   </ItemGroup>
 
@@ -24,11 +25,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GeekLearning.Logging\GeekLearning.Logging.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.Threading.Tasks.Dataflow">
-      <HintPath>..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0\System.Threading.Tasks.Dataflow.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
