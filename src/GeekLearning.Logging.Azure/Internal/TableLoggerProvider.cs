@@ -3,6 +3,7 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
+    using Microsoft.WindowsAzure.Storage.Blob;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,11 +14,18 @@
     public class TableLoggerProvider : ILoggerProvider
     {
         private Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter;
+        private CloudBlobClient blobClient;
+        private CloudBlobContainer container;
         private CloudTableClient client;
         private CloudTable table;
         private TransformBlock<DynamicTableEntity, DynamicTableEntity> pipeline;
         private BatchBlock<DynamicTableEntity> batchBlock;
         private ITargetBlock<DynamicTableEntity[]> pipelineEnd;
+
+        private ITargetBlock<KeyValuePair<string,string>> overflowBlock;
+
+        private AzureLoggerSettings settings;
+        private bool disposedValue = false;
 
         public TableLoggerProvider(AzureLoggerSettings settings)
         {
@@ -31,6 +39,13 @@
             var cloud = CloudStorageAccount.Parse(settings.ConnectionString);
             this.client = cloud.CreateCloudTableClient();
             this.table = client.GetTableReference(settings.Table);
+
+            this.blobClient = cloud.CreateCloudBlobClient();
+
+            if (!string.IsNullOrEmpty(settings.OverflowContainer))
+            {
+                this.container = this.blobClient.GetContainerReference(settings.OverflowContainer);
+            }
 
             this.batchBlock = new BatchBlock<DynamicTableEntity>(25);
 
@@ -46,11 +61,14 @@
             pipelineEnd = new ActionBlock<DynamicTableEntity[]>(WriteBatch);
             pipeline.LinkTo(batchBlock);
             batchBlock.LinkTo(pipelineEnd);
+
+            this.overflowBlock = new ActionBlock<KeyValuePair<string, string>>(WriteOverflow);
         }
+
 
         public ILogger CreateLogger(string name)
         {
-            return new TableLogger(name, GetFilter(name, settings), true, pipeline);
+            return new TableLogger(name, GetFilter(name, settings), true, this.settings.OverflowThreshold.GetValueOrDefault(8000), pipeline, overflowBlock);
         }
 
         private async Task WriteBatch(DynamicTableEntity[] rows)
@@ -67,44 +85,30 @@
             }
         }
 
-        #region IDisposable Support
-        // To detect redundant calls
-        private bool disposedValue = false;
-        private AzureLoggerSettings settings;
+        private async Task WriteOverflow(KeyValuePair<string, string> overflowData)
+        {
+            if (this.container != null)
+            {
+                var reference = this.container.GetBlockBlobReference(overflowData.Key);
+                await reference.UploadTextAsync(overflowData.Value);
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects).
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
                 this.batchBlock.TriggerBatch();
                 pipeline.Complete();
                 pipeline.Completion.Wait();
                 disposedValue = true;
             }
         }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~AzureLoggerProvider() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
-        }
-        #endregion
 
         private Func<string, Microsoft.Extensions.Logging.LogLevel, bool> GetFilter(string name, AzureLoggerSettings settings)
         {
@@ -120,12 +124,14 @@
                     Microsoft.Extensions.Logging.LogLevel level;
                     if (settings.TryGetSwitch(prefix, out level))
                     {
-                        return (n, l) => l >= level;
+                        this.filter = (n, l) => l >= level;
+                        return this.filter;
                     }
                 }
             }
 
-            return (n, l) => false;
+            this.filter = (n, l) => false;
+            return this.filter;
         }
 
         private IEnumerable<string> GetKeyPrefixes(string name)

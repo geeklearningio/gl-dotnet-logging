@@ -9,30 +9,27 @@
   },
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
-    "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
-    "WindowsAzure.Storage": "7.2.0",
-    "GeekLearning.D64": "1.0.0",
-    "GeekLearning.Logging": "*",
-    "Microsoft.Extensions.Configuration.Abstractions": "1.0.0"
+    "NETStandard.Library": "1.6.1",
+    "Microsoft.Extensions.Logging.Abstractions": "1.1.0",
+    "Microsoft.Extensions.Configuration.Abstractions": "1.1.0",
+    "WindowsAzure.Storage": "8.0.0",
+
+    "GeekLearning.Logging": "*"
   },
 
   "frameworks": {
-    "netstandard1.5": {
+    "netstandard1.3": {
       "imports": [
-        "dotnet5.6",
         "portable-net45+win8"
       ],
       "dependencies": {
-        "System.ComponentModel": "4.0.1",
-        "System.Threading.Tasks.Dataflow": "4.6.0"
+        "System.ComponentModel": "4.3.0",
+        "System.Threading.Tasks.Dataflow": "4.7.0"
       }
     },
     "net452": {
       "frameworkAssemblies": {
-        "System.ComponentModel": "4.0.0.0",
-        "System.Linq": "4.0.0.0",
-        "System.Linq.Expressions": "4.0.0.0"
+        "System.ComponentModel": "4.0.0.0"
       },
       "dependencies": {
         "Microsoft.Tpl.Dataflow": "4.5.24"

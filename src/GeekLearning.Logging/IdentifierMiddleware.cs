@@ -5,8 +5,8 @@
 
     public class IdentifierMiddleware
     {
-        private IIdentifierProvider identifierProvider;
         private readonly RequestDelegate next;
+        private readonly IIdentifierProvider identifierProvider;
 
         public IdentifierMiddleware(RequestDelegate next, IIdentifierProvider identifierProvider)
         {

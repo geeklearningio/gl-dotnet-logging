@@ -8,27 +8,31 @@
 
     public class TableLogger : ILogger
     {
-        private Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter;
+        private Func<string, LogLevel, bool> filter;
         private D64.TimebasedId timeBasedId = new D64.TimebasedId(true);
         private ITargetBlock<DynamicTableEntity> sink;
+        private int overflowThreshold;
+        private ITargetBlock<KeyValuePair<string, string>> overflowSink;
 
-        public TableLogger(string name, Func<string, Microsoft.Extensions.Logging.LogLevel, bool> filter, bool includeScopes, ITargetBlock<DynamicTableEntity> sink)
+        public TableLogger(string name, Func<string, LogLevel, bool> filter, bool includeScopes, int overflowThreshold, ITargetBlock<DynamicTableEntity> sink, ITargetBlock<KeyValuePair<string,string>> overflowSink)
         {
             this.sink = sink;
+            this.overflowSink = overflowSink;
             if (name == null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
 
-            Name = name;
-            Filter = filter ?? ((category, logLevel) => true);
+            this.overflowThreshold = overflowThreshold;
+            this.Name = name;
+            this.Filter = filter ?? ((category, logLevel) => true);
         }
 
         private string Name { get; }
 
         public bool IncludeScopes { get; set; }
 
-        public Func<string, Microsoft.Extensions.Logging.LogLevel, bool> Filter
+        public Func<string, LogLevel, bool> Filter
         {
             get { return filter; }
             set
@@ -42,12 +46,12 @@
             }
         }
 
-        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
+        public bool IsEnabled(LogLevel logLevel)
         {
             return Filter(Name, logLevel);
         }
 
-        public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             if (!IsEnabled(logLevel))
             {
@@ -61,16 +65,18 @@
 
             var message = formatter(state, exception);
             string exceptionText = exception?.ToString();
+            bool hasMessageOverflow = message.Length > overflowThreshold;
 
             var properties = new Dictionary<string, EntityProperty>
             {
                 ["LogLevel"] = EntityProperty.GeneratePropertyForString(logLevel.ToString()),
-                ["Message"] = EntityProperty.GeneratePropertyForString(message),
+                ["Message"] = EntityProperty.GeneratePropertyForString(hasMessageOverflow ? message.Substring(0, overflowThreshold) : message),
                 ["ExceptionText"] = EntityProperty.GeneratePropertyForString(exceptionText),
                 ["EventId"] = EntityProperty.GeneratePropertyForInt(eventId.Id),
                 ["EventName"] = EntityProperty.GeneratePropertyForString(eventId.Name),
                 ["Date"] = EntityProperty.GeneratePropertyForDateTimeOffset(DateTimeOffset.Now),
                 ["LoggerName"] = EntityProperty.GeneratePropertyForString(this.Name),
+                ["IsMessageOverflowed"] = EntityProperty.GeneratePropertyForBool(hasMessageOverflow),
             };
 
             string requestId = null;
@@ -101,6 +107,10 @@
                     id, null, properties);
 
                 this.sink.Post(entity);
+                if (hasMessageOverflow)
+                {
+                    this.overflowSink.Post(new KeyValuePair<string, string>(id, message));
+                }
             }
         }
 
@@ -114,5 +124,4 @@
             return AzureScope.Push(Name, state);
         }
     }
-
 }

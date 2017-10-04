@@ -1,15 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Logging
+﻿namespace GeekLearning.Logging
 {
+    using Microsoft.AspNetCore.Http;
+    using System.Threading.Tasks;
+
     public class AppendRequestIdHeaderMiddleware
     {
+        public const string RequestIdHeaderName = "X-Request-Id";
         private readonly RequestDelegate next;
-        public const string requestIdHeaderName = "X-Request-Id";
 
         public AppendRequestIdHeaderMiddleware(RequestDelegate next)
         {
@@ -20,10 +17,11 @@ namespace GeekLearning.Logging
         {
             context.Response.OnStarting(() =>
             {
-                if (!context.Response.Headers.ContainsKey(requestIdHeaderName))
+                if (!context.Response.Headers.ContainsKey(RequestIdHeaderName))
                 {
-                    context.Response.Headers[requestIdHeaderName] = context.TraceIdentifier;
+                    context.Response.Headers[RequestIdHeaderName] = context.TraceIdentifier;
                 }
+
                 return Task.FromResult(0);
             });
             await this.next.Invoke(context);

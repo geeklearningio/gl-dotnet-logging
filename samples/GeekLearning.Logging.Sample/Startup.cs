@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-
-namespace GeekLearning.Logging.Sample
+﻿namespace GeekLearning.Logging.Sample
 {
     using Azure;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     public class Startup
     {
@@ -26,15 +21,12 @@ namespace GeekLearning.Logging.Sample
 
         public IConfigurationRoot Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
             services.AddMvc();
             services.AddSingleton<IIdentifierProvider, DefaultIdentifierProvider>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             //loggerFactory.AddAzureTable(Configuration["AzureStorageConnectionString"], "logtest", LogLevel.Debug);
@@ -42,8 +34,8 @@ namespace GeekLearning.Logging.Sample
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseMiddleware<Logging.IdentifierMiddleware>();
-            app.UseMiddleware<Logging.AppendRequestIdHeaderMiddleware>();
+            app.UseMiddleware<IdentifierMiddleware>();
+            app.UseMiddleware<AppendRequestIdHeaderMiddleware>();
 
             app.UseMvc();
         }

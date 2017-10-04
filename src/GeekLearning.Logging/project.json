@@ -9,13 +9,14 @@
   },
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
-    "Microsoft.AspNetCore.Http.Abstractions": "1.0.0",
-    "GeekLearning.D64": "1.0.0"
+    "NETStandard.Library": "1.6.1",
+    "Microsoft.AspNetCore.Http.Abstractions": "1.1.0",
+
+    "GeekLearning.D64": "1.1.1"
   },
 
   "frameworks": {
-    "net452": {},
-    "netstandard1.5": {}
+    "net451": {},
+    "netstandard1.3": {}
   }
 }

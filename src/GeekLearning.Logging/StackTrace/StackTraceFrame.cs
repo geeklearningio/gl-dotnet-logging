@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Logging.StackTrace
+﻿namespace GeekLearning.Logging.StackTrace
 {
+    using System.Collections.Generic;
+
     public class StackTraceFrame
     {
         public StackTraceToken Frame { get; private set; }
+
         public StackTraceMethod Method { get; private set; }
+
         public StackTraceParameterList Parameters { get; private set; }
+
         public StackTraceSource Source { get; private set; }
 
         public static IEnumerable<StackTraceFrame> Parse(string stackTrace)

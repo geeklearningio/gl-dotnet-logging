@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{2BCF
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Logging.Sample", "samples\GeekLearning.Logging.Sample\GeekLearning.Logging.Sample.xproj", "{862C3FA0-6F64-4820-9C85-47C2F6C0125D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C58B8120-2042-48C3-9052-DD6434F30591}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "items", "items", "{C58B8120-2042-48C3-9052-DD6434F30591}"
 	ProjectSection(SolutionItems) = preProject
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Logging.Tests", "tests\GeekLearning.Logging.Tests\GeekLearning.Logging.Tests.xproj", "{BE4BEEF2-C37D-4925-9CE0-0B6F0B8EF684}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Logging.AspNetCore", "src\GeekLearning.Logging.AspNetCore\GeekLearning.Logging.AspNetCore.xproj", "{4004C0C2-DB05-48A8-9DE5-4506AFE5EF6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +51,10 @@ Global
 		{BE4BEEF2-C37D-4925-9CE0-0B6F0B8EF684}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE4BEEF2-C37D-4925-9CE0-0B6F0B8EF684}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE4BEEF2-C37D-4925-9CE0-0B6F0B8EF684}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4004C0C2-DB05-48A8-9DE5-4506AFE5EF6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4004C0C2-DB05-48A8-9DE5-4506AFE5EF6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4004C0C2-DB05-48A8-9DE5-4506AFE5EF6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4004C0C2-DB05-48A8-9DE5-4506AFE5EF6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,5 +64,6 @@ Global
 		{F9245103-86CA-4969-8CD3-1EBD5FC575C8} = {DD526A9D-66E5-4744-9025-8EE193E4F0A7}
 		{862C3FA0-6F64-4820-9C85-47C2F6C0125D} = {2BCF00D4-FDBC-4975-ADC2-2A8658625AAF}
 		{BE4BEEF2-C37D-4925-9CE0-0B6F0B8EF684} = {C62B2308-A15F-4DDC-952D-968F957A2135}
+		{4004C0C2-DB05-48A8-9DE5-4506AFE5EF6D} = {DD526A9D-66E5-4744-9025-8EE193E4F0A7}
 	EndGlobalSection
 EndGlobal
