@@ -75,7 +75,7 @@
         {
             return new Task((object data) =>
             {
-                var rows = (DynamicTableEntity[])input;
+                var rows = (DynamicTableEntity[])data;
                 foreach (var group in rows.GroupBy(x => x.PartitionKey))
                 {
                     TableBatchOperation batchOperation = new TableBatchOperation();
