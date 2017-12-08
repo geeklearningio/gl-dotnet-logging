@@ -89,13 +89,17 @@
             }, input, TaskCreationOptions.LongRunning);
         }
 
-        private async Task WriteOverflow(KeyValuePair<string, string> overflowData)
+        private Task WriteOverflow(KeyValuePair<string, string> input)
         {
-            if (this.container != null)
+            return new Task((object data) =>
             {
-                var reference = this.container.GetBlockBlobReference(overflowData.Key);
-                await reference.UploadTextAsync(overflowData.Value);
-            }
+                var overflowData = (KeyValuePair<string, string>)data;
+                if (this.container != null)
+                {
+                    var reference = this.container.GetBlockBlobReference(overflowData.Key);
+                    reference.UploadTextAsync(overflowData.Value).Wait();
+                }
+            }, input, TaskCreationOptions.LongRunning);
         }
 
         public void Dispose()
