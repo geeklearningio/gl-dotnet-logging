@@ -22,7 +22,7 @@
         private BatchBlock<DynamicTableEntity> batchBlock;
         private ITargetBlock<DynamicTableEntity[]> pipelineEnd;
 
-        private ITargetBlock<KeyValuePair<string,string>> overflowBlock;
+        private ITargetBlock<KeyValuePair<string, string>> overflowBlock;
 
         private AzureLoggerSettings settings;
         private bool disposedValue = false;
@@ -71,18 +71,21 @@
             return new TableLogger(name, GetFilter(name, settings), true, this.settings.OverflowThreshold.GetValueOrDefault(8000), pipeline, overflowBlock);
         }
 
-        private async Task WriteBatch(DynamicTableEntity[] rows)
+        private Task WriteBatch(DynamicTableEntity[] rows)
         {
-            foreach (var group in rows.GroupBy(x => x.PartitionKey))
+            return new Task(() =>
             {
-                TableBatchOperation batchOperation = new TableBatchOperation();
-                foreach (var row in group)
+                foreach (var group in rows.GroupBy(x => x.PartitionKey))
                 {
-                    batchOperation.Insert(row, false);
-                }
+                    TableBatchOperation batchOperation = new TableBatchOperation();
+                    foreach (var row in group)
+                    {
+                        batchOperation.Insert(row, false);
+                    }
 
-                await table.ExecuteBatchAsync(batchOperation);
-            }
+                    table.ExecuteBatchAsync(batchOperation).Wait();
+                }
+            }, TaskCreationOptions.LongRunning);
         }
 
         private async Task WriteOverflow(KeyValuePair<string, string> overflowData)
