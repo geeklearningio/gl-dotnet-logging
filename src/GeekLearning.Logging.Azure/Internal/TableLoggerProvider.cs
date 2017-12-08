@@ -71,10 +71,11 @@
             return new TableLogger(name, GetFilter(name, settings), true, this.settings.OverflowThreshold.GetValueOrDefault(8000), pipeline, overflowBlock);
         }
 
-        private Task WriteBatch(DynamicTableEntity[] rows)
+        private Task WriteBatch(DynamicTableEntity[] input)
         {
-            return new Task(() =>
+            return new Task((object data) =>
             {
+                var rows = (DynamicTableEntity[])input;
                 foreach (var group in rows.GroupBy(x => x.PartitionKey))
                 {
                     TableBatchOperation batchOperation = new TableBatchOperation();
@@ -85,7 +86,7 @@
 
                     table.ExecuteBatchAsync(batchOperation).Wait();
                 }
-            }, TaskCreationOptions.LongRunning);
+            }, input, TaskCreationOptions.LongRunning);
         }
 
         private async Task WriteOverflow(KeyValuePair<string, string> overflowData)
